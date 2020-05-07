@@ -1,0 +1,10 @@
+# 忽略文件
+node_modules
+outputs/
+.vscode/
+
+# 忽略文件
+.jshintrc
+dll.json
+test.config.js
+package-lock.json
