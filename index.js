@@ -1,16 +1,25 @@
-import {
-    hostname,
-    port
-} from './public/environment'
+const environment = require('./public/environment')
+const mongodb = require('./public/mongoDB')
+const express = require('express');
+const bodyParser = require('body-parser');
+const APP = express();
+const user = require('./src/user')
+APP.use(bodyParser.urlencoded({ extended: false }));
+APP.use(bodyParser.json())
 
-const http = require('http');
+mongodb.init()
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World');
+APP.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+  res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+  // res.header("X-Powered-By", ' 3.2.1')
+  // res.header("Content-Type", "application/json;charset=utf-8");
+  next();
 });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+APP.post('/login', user.login)
+APP.listen(environment.port, () => {
+  console.log(`Server running at http://${environment.hostname}:${environment.port}/`);
 });
+
