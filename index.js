@@ -19,6 +19,7 @@ APP.all('*', function(req, res, next) {
 });
 
 APP.post('/login', user.login)
+APP.post('/getRegisterCode', user.registerCode)
 APP.listen(environment.port, () => {
   console.log(`Server running at http://${environment.hostname}:${environment.port}/`);
 });

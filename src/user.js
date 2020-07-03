@@ -1,10 +1,14 @@
-const mongodb = require('./public/mongoDB')
+const mongo = require('../public/mongoDB')
 const { v4: uuidv4 } = require('uuid');
 const md5 = require('js-md5')
+const email = require('../public/email')
+const common = require('../public/common')
+const commonData = require('../public/DATA')
+
 let login = async function(req, res, next){
-    let DB = mongodb.getDB()
+    let DB = mongo.getDB()
     let uuid = uuidv4();
-    let time= new Date().getTime()
+    let time = new Date()
     let UID
     try{
        UID = await DB.collection('user').findOne({
@@ -27,10 +31,10 @@ let login = async function(req, res, next){
         "time": time,
         ip: req.ip
       })
-      mongodb.getDB().collection('token').createIndex({
+      DB.collection('token').createIndex({
         time
       },{
-        expireAfterSeconds: 1000 * 60 * 10
+        expireAfterSeconds: 60 * 10
       },{
         backgroup: true
       })
@@ -43,6 +47,45 @@ let login = async function(req, res, next){
     }
 }
 
+let registerCode = async function(req, res){
+    let DB = mongo.getDB()
+    let c = common.getCode(commonData.REGISTER_CODE_SIZE)
+    let time = new Date()
+    let r = email.sendEmail({
+        userEmail: '1578536879@qq.com',
+        subject: '注册账号',
+        code: c,
+        use: '激活账号',
+        time: time
+    })
+    if(r === 0){
+      res.send({
+        code: 202,
+        msg: '邮件发送失败，请重新发送'
+      })
+    }else{
+      let time = new Date()
+      DB.collection('code').insertOne({
+        "email": req.body.email,
+        "code": c,
+        "time": time
+      })
+      DB.collection('code').createIndex({
+        "time": 1 
+      },{
+        expireAfterSeconds: 60 * 10
+      },{
+        backgroup: true
+      })
+      res.send({
+        code: 200,
+        msg: 'success'
+      })
+    }
+}
+
+
 module.exports = {
-    login: login
+    login: login,
+    registerCode: registerCode
 }
