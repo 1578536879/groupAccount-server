@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const APP = express();
 const user = require('./src/user')
+const code = require('./src/code')
 APP.use(bodyParser.urlencoded({ extended: false }));
 APP.use(bodyParser.json())
 
@@ -19,7 +20,8 @@ APP.all('*', function(req, res, next) {
 });
 
 APP.post('/login', user.login)
-APP.post('/getRegisterCode', user.registerCode)
+APP.post('/register', user.register)
+APP.post('/getRegisterCode', code.registerCode)
 APP.listen(environment.port, () => {
   console.log(`Server running at http://${environment.hostname}:${environment.port}/`);
 });
