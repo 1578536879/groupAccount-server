@@ -25,7 +25,10 @@ APP.all('*', function(req, res, next) {
 APP.post('/login', user.login)
 APP.post('/register', user.register)
 APP.post('/user/resetPassword', user.resetPassword)
-APP.post('/getRegisterCode', code.registerCode)
+APP.post('/user/forgetPassword', user.forgetPassword)
+
+APP.get('/code/registerCode', code.registerCode)
+APP.get('/code/forgetPassword', code.getforgetPasswordCode)
 
 APP.post('/group/create', group.createGroup)
 APP.delete('/group/stopUsing', group.stopUsingGroup)

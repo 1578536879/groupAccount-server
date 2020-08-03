@@ -50,133 +50,75 @@ let login = async function(req, res, next){
 
 
 
-let register = async function(req, res){
+let register = function(req, res){
   let DB = mongo.getDB()
-  let email = req.body.email
-  let users
-  try{
-    users = await DB.collection('user').find({
-      email: email
-    }).toArray()
-  }catch(err){
-    console.error(err)
-    res.send({
-        code: commonDate.CODE.DB_ERROR,
-        msg: '查询数据库失败！'
-    })
-  }
-  
-  if(users.length !== 0){
-    res.send({
-      code: commonData.CODE.INVALID,
-      msg: '该用户已存在！'
-    })
-    return
-  }
-  let code = req.body.code
-  let codes
-  try{
-    codes = await DB.collection('code').find({
-      email: email,
-      code: code
-    }).toArray()
-  }catch(err){
-    console.error(err)
-    res.send({
-        code: commonDate.CODE.DB_ERROR,
-        msg: '查询数据库失败！'
-    })
-  }
-  
-  if(codes.length === 0){
-    res.send({
-      code: commonData.CODE.DATA_ERROE,
-      msg: '验证码输入错误或已失效！'
-    })
-  }else if(codes[0].invalid){
-    res.send({
-      code: commonData.CODE.INVALID,
-      msg: '验证码已失效！'
-    })
-  }
-  let password = base64.decode(req.body.password)
-  let pos = parseInt(req.body.pos)
-  password = password.substr(0, pos) + password.substr(pos + md5('BookKeeping').length, password.length - pos)
-  password = md5(password)
-  let UID
-  try{
-    UID = await common.getID({
-      attribute: 'UID',
-      collection: 'user'
-    })
-  }catch(err){
-    console.error(err)
-    res.send({
-        code: commonDate.CODE.DB_ERROR,
-        msg: '查询数据库失败！'
-    })
-  }
-  
-  DB.collection('user').insertOne({
-    email: email,
-    password: password,
-    username: req.body.username,
-    UID: UID
-  })
-  DB.collection('token').deleteOne({
-    email: email,
-    code: code
-  })
-  res.send({
-    code: commonData.CODE.SUCCESS,
-    msg: '注册成功'
+  codeFile.codeEffective({
+    email: req.body.email,
+    code: req.body.code,
+    register: true
+  }).then(async r=>{
+    if(r.code === commonData.CODE.SUCCESS){
+      let password = base64.decode(req.body.password)
+      let pos = parseInt(req.body.pos)
+      password = password.substr(0, pos) + password.substr(pos + md5('BookKeeping').length, password.length - pos)
+      password = md5(password)
+      let UID
+      try{
+        UID = await common.getID({
+          attribute: 'UID',
+          collection: 'user'
+        })
+      }catch(err){
+        console.error(err)
+        res.send({
+            code: commonDate.CODE.DB_ERROR,
+            msg: '查询数据库失败！'
+        })
+      }
+      DB.collection('user').insertOne({
+        email: req.body.email,
+        password: password,
+        username: req.body.username,
+        UID: UID
+      })
+      res.send({
+        code: commonData.CODE.SUCCESS,
+        msg: '注册成功'
+      })
+    }else{
+      res.send(r)
+    }
   })
 }
 
-let forgetPassword = async function(req, res){
-  let DB = mongo.getDB()
-  let user
-    try{
-      user = await DB.collection('code').findOne({
-        email: req.body.email
+let forgetPassword = function(req, res){
+    let DB = mongo.getDB()
+    codeFile.codeEffective({
+      email: req.body.email,
+      code: req.body.code,
+      register: false
+    }).then(r=>{
+        if(r.code === commonData.CODE.SUCCESS){
+          let password = base64.decode(req.body.password)
+          let pos = parseInt(req.body.pos)
+          password = password.substr(0, pos) + password.substr(pos + md5('BookKeeping').length, password.length - pos)
+          password = md5(password)
+          DB.collection('user').updateOne({
+            email: req.body.email
+          },{
+            $set:{
+              password: password
+            }
+          })
+          res.send({
+            code: commonData.CODE.SUCCESS,
+            msg: '修改密码成功√'
+          })
+        }
+        else{
+          res.send(r)
+        }
       })
-    }catch(err){
-      console.error(err)
-      res.send({
-          code: commonDate.CODE.DB_ERROR,
-          msg: '查询数据库失败！'
-      })
-    }
-    if(user.length === 0){
-      res.send({
-        code: commonData.CODE.DATA_ERROE,
-        msg: '该邮箱不存在，请检查是否输入错误或确认是否未注册'
-      })
-    }else{
-      let r = codeFile.codeEffective({
-        email: req.body.email,
-        code: req.body.code
-      })
-      if(r.code === commonData.CODE.SUCCESS){
-        let password = base64.decode(req.body.password)
-        let pos = parseInt(req.body.pos)
-        password = password.substr(0, pos) + password.substr(pos + md5('BookKeeping').length, password.length - pos)
-        password = md5(password)
-        DB.collection('user').updateOne({
-          email: req.body.email
-        },{
-          $set:{
-            password: password
-          }
-        })
-        res.send({
-          data: r.code,
-          msg: '修改密码成功√'
-        })
-      }else {
-        res.send(r)
-      }
-    }
 }
 
 let resetPassword = async function(req, res){
@@ -240,5 +182,6 @@ let resetPassword = async function(req, res){
 module.exports = {
     login: login,
     register: register,
-    resetPassword: resetPassword
+    resetPassword: resetPassword,
+    forgetPassword: forgetPassword
 }

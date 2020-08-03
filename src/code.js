@@ -5,120 +5,149 @@ const common = require('../public/common')
 
 let registerCode = async function(req, res){
     let DB = mongo.getDB()
-    let c = common.getCode(commonData.REGISTER_CODE_SIZE)
-    let time = new Date()
-    let r = email.sendEmail({
-        userEmail: '1578536879@qq.com',
-        subject: '注册账号',
-        code: c,
-        use: '激活账号',
-        time: time
-    })
-    if(r === 0){
-      res.send({
-        code: commonData.CODE.SEND_FAIL,
-        msg: '邮件发送失败，请重新发送'
+    let emailData = req.query[0]
+    emailData = emailData.replace('email=', '')
+    emailData = emailData.replace('%40', '@')
+    try {
+      let user = await DB.collection('user').findOne({
+        email: emailData
       })
-    }else{
-      time = time.getTime()
-      time = new Date(time + 1000 * 60 * 60 * 8) // mongodb有8个小时的时差
-      DB.collection('code').insertOne({
-        "email": req.body.email,
-        "code": c,
-        "time": time,
-        "invalid": false
-      })
-      
+      if(user){
+        res.send({
+          code: commonData.CODE.INVALID,
+          msg: '该邮箱已注册！'
+        })
+      }else{
+        let c = common.getCode(commonData.REGISTER_CODE_SIZE)
+        let time = new Date()
+        let r = email.sendEmail({
+            userEmail: emailData,
+            subject: '注册账号',
+            code: c,
+            use: '激活账号',
+            time: time
+        })
+        if(r === 0){
+          res.send({
+            code: commonData.CODE.SEND_FAIL,
+            msg: '邮件发送失败，请重新发送'
+          })
+        }else{
+          time = time.getTime()
+          time = new Date(time + 1000 * 60 * 60 * 8) // mongodb有8个小时的时差
+          DB.collection('code').insertOne({
+            "email": emailData,
+            "code": c,
+            "time": time,
+            "invalid": false
+          })
+          
+          res.send({
+            code: commonData.CODE.SUCCESS,
+            msg: 'success'
+          })
+        }
+      }
+    } catch (error) {
       res.send({
-        code: commonData.CODE.SUCCESS,
-        msg: 'success'
+        code: commonData.CODE.DB_ERROR,
+        msg: '查询数据库失败！'
       })
     }
+   
 }
 
-let getforgetPasswordCode = function(req, res){
-  let email = req.body.email
+let getforgetPasswordCode = async function(req, res){
+  let emailData = req.query[0]
+  emailData = emailData.replace('email=', '')
+  emailData = emailData.replace('%40', '@')
   let DB = mongo.getDB()
-  let user
   try{
-    user = await DB.collection('user').findOne({
-      "email": email
+    let user = await DB.collection('user').findOne({
+      "email": emailData
     })
-  }catch(err){
-    console.error(err)
-  }
-  if(user.length === 0){
-    res.send({
-      code: commonData.CODE.DATA_ERROE,
-      msg: '该邮箱不存在，请检查是否输入错误或确认是否未注册'
-    })
-  }else{
-    let c = common.getCode(commonData.REGISTER_CODE_SIZE)
-    let time = new Date()
-    let r = email.sendEmail({
-        userEmail: '1578536879@qq.com',
-        subject: '找回密码',
-        code: c,
-        use: '重置密码',
-        title: '这是找回密码的邮件, 如果没有相关操作，请不用理会',
-        time: time
-    })
-    if(r === 0){
+    if(!user){
       res.send({
-        code: commonData.CODE.SEND_FAIL,
-        msg: '邮件发送失败，请重新发送'
+        code: commonData.CODE.DATA_ERROE,
+        msg: '该邮箱不存在，请检查是否输入错误或确认是否未注册'
       })
     }else{
-      time = time.getTime()
-      time = new Date(time + 1000 * 60 * 60 * 8) // mongodb有8个小时的时差
-      DB.collection('code').insertOne({
-        "email": req.body.email,
-        "code": c,
-        "time": time,
-        "invalid": false
+      let c = common.getCode(commonData.REGISTER_CODE_SIZE)
+      let time = new Date()
+      let r = email.sendEmail({
+          userEmail: '1578536879@qq.com',
+          subject: '找回密码',
+          code: c,
+          use: '重置密码',
+          title: '这是找回密码的邮件, 如果没有相关操作，请不用理会',
+          time: time
       })
-      
-      res.send({
-        code: commonData.CODE.SUCCESS,
-        msg: 'success'
-      })
+      if(r === 0){
+        res.send({
+          code: commonData.CODE.SEND_FAIL,
+          msg: '邮件发送失败，请重新发送'
+        })
+      }else{
+        time = time.getTime()
+        time = new Date(time + 1000 * 60 * 60 * 8) // mongodb有8个小时的时差
+        DB.collection('code').insertOne({
+          "email": emailData,
+          "code": c,
+          "time": time,
+          "invalid": false  
+        })
+        
+        res.send({
+          code: commonData.CODE.SUCCESS,
+          msg: 'success'
+        })
+      }
     }
+  }catch(err){
+    console.error(err)
+    res.send({
+      code: commonData.CODE.DB_ERROR,
+      msg: '查询数据库失败！'
+    })
   }
 }
 
-let codeEffective = function(data){
+let codeEffective = async function(data){
   let user
-  try{
-    user = await DB.collection('user').find({
-      email: data.email
-    }).toArray()
-  }catch(err){
-    console.error(err)
-  }
-  if(user.length === 0){
-    return {
-      code: commonData.CODE.DATA_ERROE,
-      msg: '该邮箱不存在，请检查是否输入错误或确认是否未注册'
-    }
-  }else{
+  let DB = mongo.getDB()
+  if(!data.register){
     try{
-      user = await DB.collection('code').find({
-        email: data.email,
-        code: data.code
-      }).toArray()
+      user = await DB.collection('user').findOne({
+        email: data.email
+      })
     }catch(err){
       console.error(err)
     }
-    if(user.length === 0){
+    if(!user){
+      return {
+        code: commonData.CODE.DATA_ERROE,
+        msg: '该邮箱不存在，请检查是否输入错误或确认是否未注册'
+      }
+    }
+  }
+    try{
+      user = await DB.collection('code').findOne({
+        email: data.email,
+        code: data.code
+      })
+    }catch(err){
+      console.error(err)
+    }
+    if(!user){
       return {
         code: commonData.CODE.DATA_ERROE,
         msg: '验证码输入错误或已失效！'
       }
     }else {
       let time = new Date().getTime()
-      if(time - data.time.getTime() > 1000 * 60 * 10 || data.invalid){
+      if(time - user.time.getTime() > 1000 * 60 * 10 || user.invalid){
         DB.collection('token').deleteOne({
-          email: data.email,
+          email: data.email,  
           code: data.code
         })
         return {
@@ -135,7 +164,6 @@ let codeEffective = function(data){
         }
       }
     }
-  }
 }
 
 module.exports = {
