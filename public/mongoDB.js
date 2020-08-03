@@ -18,6 +18,14 @@ function init(){
           },{
             backgroup: true
           })
+
+          DB.collection('token').createIndex({
+            "time": 1
+          },{
+            expireAfterSeconds: parseInt(commonData.CODE_EXPIRE_TIME)
+          },{
+            backgroup: true
+          })
       })
       
 } 
