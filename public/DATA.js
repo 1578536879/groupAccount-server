@@ -7,6 +7,11 @@ module.exports = {
         DATA_ERROE: 202,
         SEND_FAIL: 203,
         DB_ERROR: 204,
-        VIRES: 205
-    }
+        VIRES: 205,
+        NO_FILE: 206,
+        MAX_IMAGE_LIMIT: 207,
+        ERROR_IMAGE_TYPE: 208
+    },
+    IMAGETYPE: ['jpg', 'jpeg', 'png', 'bmp'],
+    MAX_IMAGE_SIZE: 500000
 }

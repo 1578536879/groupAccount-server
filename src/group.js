@@ -2,6 +2,7 @@ const mongo = require('../public/mongoDB')
 const token = require('../public/token')
 const commonData = require('../public/DATA')
 const { v4: uuidv4 } = require('uuid')
+const common = require('../public/common')
 
 let createGroup = function(req, res){
     let DB = mongo.getDB()
@@ -11,7 +12,7 @@ let createGroup = function(req, res){
         if(r.code !== commonData.CODE.SUCCESS){
             res.send(r)
         }else{
-            let gid = uuidv4()
+            let gid = common.getID('group')
             // let user = await DB.collection('user').findOne({
             //     UID: r.date.data.UID.UID
             // })
