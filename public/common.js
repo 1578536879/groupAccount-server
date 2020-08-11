@@ -18,7 +18,7 @@ let getID = async function(data){
         let attribute = data.attribute
         let res
         try{
-            res = await DB.collection(data.collection).find({
+            res = await DB.collection(data).find({
                 attribute: uuid
             }).toArray()
         } catch (err){

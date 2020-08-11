@@ -179,9 +179,50 @@ let resetPassword = async function(req, res){
   })
 }
 
+let switchGroup = function(req, res){
+    token.verifyToken({
+        token: req.headers.token
+    }).then(r=>{
+      if(r.code !== commonData.CODE.SUCCESS){
+        res.send(r)
+      }else{
+        let UID = r.date.data.UID.UID || r.date.data.UID
+        if(req.body.group === 'person'){
+          token.getToken({
+            UID: UID
+          }).then(r=>{
+            console.log(r)
+            res.send({
+              code: commonData.CODE.SUCCESS,
+              data:{
+                token: r
+              },
+              msg: '账单删除成功√'
+          })
+        })
+        }else{
+          token.getToken({
+            UID: UID,
+            GID: req.body.group
+          }).then(r=>{
+            console.log(r)
+            res.send({
+              code: commonData.CODE.SUCCESS,
+              data:{
+                token: r
+              },
+              msg: '账单删除成功√'
+          })
+        })
+        }
+      }
+    })
+}
+
 module.exports = {
     login: login,
     register: register,
     resetPassword: resetPassword,
-    forgetPassword: forgetPassword
+    forgetPassword: forgetPassword,
+    switchGroup: switchGroup
 }

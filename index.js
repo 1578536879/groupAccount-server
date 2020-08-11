@@ -10,6 +10,7 @@ const code = require('./src/code')
 const userGroup = require('./src/userGroup')
 const group = require('./src/group')
 const userBill = require('./src/userBill')
+const groupBill = require('./src/groupBill')
 const image = require('./src/image')
 const pathname = __dirname;
 //静态文件访问
@@ -47,6 +48,7 @@ APP.post('/login', user.login)
 APP.post('/register', user.register)
 APP.post('/user/resetPassword', user.resetPassword)
 APP.post('/user/forgetPassword', user.forgetPassword)
+APP.post('/user/switchGroup', user.switchGroup)
 
 APP.get('/code/registerCode', code.registerCode)
 APP.get('/code/forgetPassword', code.getforgetPasswordCode)
@@ -57,11 +59,16 @@ APP.post('/group/startUsing', group.startUsingGroup)
 APP.post('/group/rename', group.groupRename)
 
 APP.get('/group/user/getGroups', userGroup.getUserGroups)
+APP.post('/group/user/invite', userGroup.inviteUser)
+APP.post('/group/user/inviteEffective', userGroup.inviteEffective)
 
 APP.post('/user/bill/insert', userBill.insertBill)
 APP.get('/user/bill/get', userBill.getBill)
 APP.delete('/user/bill/delete', userBill.deleteBill)
 
+APP.post('/group/bill/insert', groupBill.insertBill)
+APP.get('/group/bill/get', groupBill.getBill)
+APP.delete('/group/bill/delete', groupBill.deleteBill)
 
 APP.post('/image/bill/update', multer({
   storage

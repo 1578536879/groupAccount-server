@@ -4,7 +4,7 @@ const token = require('../public/token')
 const common = require('../public/common')
 const fs = require('fs')
 
-let getBill = function(req, res){
+let getBill =  function(req, res){
     let DB = mongo.getDB()
     token.verifyToken({
         token: req.headers.token
@@ -14,14 +14,13 @@ let getBill = function(req, res){
         }else{
             try {
                 let UID = r.date.data.UID.UID || r.date.data.UID
-                let bill = await DB.collection('bill').find({
-                    UID: UID,
-                    GID: ''
+                let bill = await DB.collection(commonData.COLLECTION.BILL).find({
+                    GID: r.date.data.GID
                 }).toArray()
                 token.getToken({
-                    UID: UID
+                    UID: UID,
+                    GID: r.date.data.GID
                 }).then(r=>{
-                    console.log(r)
                     res.send({
                     code: commonData.CODE.SUCCESS,
                     data:{
@@ -29,16 +28,18 @@ let getBill = function(req, res){
                         data: bill
                     }
                 })
-                }) 
+            })
+                
             } catch (error) {
                 res.send({
                     code: commonData.CODE.DATA_ERROE,
                     msg: '查询数据库失败！'
                 }) 
-            }
-        
+                
+            } 
         }
     })
+    
 }
 
 let insertBill = function(req, res){
@@ -50,29 +51,24 @@ let insertBill = function(req, res){
             res.send(r)
         }else{
             let UID = r.date.data.UID.UID || r.date.data.UID
-            if(!UID){
-                res.send({
-                    code: commonData.CODE.INVALID,
-                    msg: '登陆失效！请重新登录 '
-                })
-            }
-            let bid = await common.getID('bill')
-            let user = await DB.collection('user').findOne({
+            let user = await DB.collection(commonData.COLLECTION.USER).findOne({
                 UID: UID
             })
-            DB.collection('bill').insertOne({
-                UID: UID,
+            let bid = await common.getID(commonData.COLLECTION.BILL)
+            DB.collection(commonData.COLLECTION.BILL).insertOne({
+                GID: r.date.data.GID,
                 BID: bid,
-                GID: '',
-                type: req.body.type === "false" ? false : true,
+                type:  req.body.type === "false" ? false : true,
                 content: req.body.content,
                 date: req.body.date,
                 price: req.body.price,
                 imagePath: req.body.path,
                 recorder: user.username,
+                UID: UID
             })
             token.getToken({
-                UID: UID
+                UID: UID,
+                GID: r.date.data.GID
               }).then(r=>{
                 console.log(r)
                 res.send({
@@ -89,6 +85,7 @@ let insertBill = function(req, res){
             })
         }
     })
+    
 }
 
 let deleteBill = function(req, res){
@@ -100,13 +97,14 @@ let deleteBill = function(req, res){
             res.send(r)
         }else{
             let UID = r.date.data.UID.UID || r.date.data.UID
-            DB.collection('bill').deleteOne({
-                UID: UID,
+            DB.collection(commonData.COLLECTION.BILL).deleteOne({
+                GID: r.date.data.GID,
                 BID: req.body.BID
             })
-            fs.unlink(req.body.path, (err, res)=>{
+            fs.unlink(req.body.path, (err, rr)=>{
                 token.getToken({
-                    UID: UID
+                    UID: UID,
+                    GID: r.date.data.GID,
                   }).then(r=>{
                     console.log(r)
                     res.send({
@@ -118,13 +116,13 @@ let deleteBill = function(req, res){
                   })
                 })
             })
-            
         }
     })
+    
 }
 
 module.exports = {
-    insertBill: insertBill,
     getBill: getBill,
+    insertBill: insertBill,
     deleteBill: deleteBill
 }

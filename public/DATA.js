@@ -13,5 +13,14 @@ module.exports = {
         ERROR_IMAGE_TYPE: 208
     },
     IMAGETYPE: ['jpg', 'jpeg', 'png', 'bmp'],
-    MAX_IMAGE_SIZE: 500000
+    MAX_IMAGE_SIZE: 500000,
+    COLLECTION: {
+        GROUP: 'group',
+        UG: 'UG',
+        BILL: 'bill',
+        CODE: 'code',
+        SECRETKEY: 'secretKey',
+        USER: 'user',
+        INVITATION: 'invitation'
+    }
 }

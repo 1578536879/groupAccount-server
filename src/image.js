@@ -34,17 +34,12 @@ let billUpdate = function(req, res, nexr){
                 })
                 return 
             }
-            token.getToken({
-                UID: r.date.data.UID.UID
-              }).then(r=>{
-                res.send({
-                  code: commonData.CODE.SUCCESS,
-                  data:{
-                    token: r,
-                    path: req.file.path
-                  },
-                  msg: '新建成功！'
-              })
+            res.send({
+                code: commonData.CODE.SUCCESS,
+                data:{
+                  path: req.file.path
+                },
+                msg: '图片上传成功√'
             })
         }
      })

@@ -12,7 +12,7 @@ let createGroup = function(req, res){
         if(r.code !== commonData.CODE.SUCCESS){
             res.send(r)
         }else{
-            let gid = common.getID('group')
+            let gid = await common.getID('group')
             // let user = await DB.collection('user').findOne({
             //     UID: r.date.data.UID.UID
             // })
