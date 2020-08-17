@@ -14,12 +14,13 @@ let getBill = function(req, res){
         }else{
             try {
                 let UID = r.date.data.UID.UID || r.date.data.UID
-                let bill = await DB.collection('bill').find({
+                let bill = await DB.collection(commonData.COLLECTION.BILL).find({
                     UID: UID,
                     GID: ''
                 }).toArray()
                 token.getToken({
-                    UID: UID
+                    UID: UID,
+                    GID: r.date.data.GID
                 }).then(r=>{
                     console.log(r)
                     res.send({
@@ -56,11 +57,11 @@ let insertBill = function(req, res){
                     msg: '登陆失效！请重新登录 '
                 })
             }
-            let bid = await common.getID('bill')
-            let user = await DB.collection('user').findOne({
+            let bid = await common.getID(commonData.COLLECTION.BILL)
+            let user = await DB.collection(commonData.COLLECTION.USER).findOne({
                 UID: UID
             })
-            DB.collection('bill').insertOne({
+            DB.collection(commonData.COLLECTION.BILL).insertOne({
                 UID: UID,
                 BID: bid,
                 GID: '',
@@ -72,7 +73,8 @@ let insertBill = function(req, res){
                 recorder: user.username,
             })
             token.getToken({
-                UID: UID
+                UID: UID,
+                GID: r.date.data.GID
               }).then(r=>{
                 console.log(r)
                 res.send({
@@ -100,13 +102,14 @@ let deleteBill = function(req, res){
             res.send(r)
         }else{
             let UID = r.date.data.UID.UID || r.date.data.UID
-            DB.collection('bill').deleteOne({
+            DB.collection(commonData.COLLECTION.BILL).deleteOne({
                 UID: UID,
                 BID: req.body.BID
             })
             fs.unlink(req.body.path, (err, res)=>{
                 token.getToken({
-                    UID: UID
+                    UID: UID,
+                    GID: r.date.data.GID
                   }).then(r=>{
                     console.log(r)
                     res.send({

@@ -15,7 +15,6 @@ let getID = async function(data){
     let uuid
     while(true){
         uuid = uuidv4()
-        let attribute = data.attribute
         let res
         try{
             res = await DB.collection(data).find({
@@ -24,7 +23,7 @@ let getID = async function(data){
         } catch (err){
             console.error(err)
         }
-        if(res.length === 0){
+        if(res){
             break
         }
     }

@@ -1,7 +1,6 @@
 const mongo = require('../public/mongoDB')
 const token = require('../public/token')
 const commonData = require('../public/DATA')
-const { v4: uuidv4 } = require('uuid')
 const common = require('../public/common')
 
 let createGroup = function(req, res){
@@ -12,54 +11,61 @@ let createGroup = function(req, res){
         if(r.code !== commonData.CODE.SUCCESS){
             res.send(r)
         }else{
-            let gid = await common.getID('group')
-            // let user = await DB.collection('user').findOne({
-            //     UID: r.date.data.UID.UID
-            // })
-            DB.collection('group').insertOne({
+            let uid = r.date.data.UID.UID || r.date.data.UID
+            let gid = await common.getID(commonData.COLLECTION.GROUP)
+            let user = await DB.collection(commonData.COLLECTION.USER).findOne({
+                UID: uid
+            })
+            DB.collection(commonData.COLLECTION.GROUP).insertOne({
                 GID: gid,
                 createTime: new Date(),
-                creator: r.date.data.UID.UID || r.date.data.UID,
+                creator: uid,
                 name: req.body.name,
                 user: [{
-                    UID: r.date.data.UID.UID || r.date.data.UID,
+                    UID: uid,
                     role: 'creator',
-                    name: r.date.data.UID.username
+                    name: user.username,
+                    email: user.email
                 }],
                 using: true
             })
             try {
-                let r = await DB.collection('UG').findOne({
-                    UID: r.date.data.UID.UID || r.date.data.UID
+                let rr = await DB.collection(commonData.COLLECTION.UG).findOne({
+                    UID: uid
                 })
-                if(!r){
-                    DB.collection('UG').insertOne({
+                if(!rr){
+                    DB.collection(commonData.COLLECTION.UG).insertOne({
                         GID: [gid],
-                        UID: r.date.data.UID.UID
+                        UID: uid
                     })
                 }else{
-                    DB.collection('UG').update({
-                        UID: data.UID
+                    DB.collection(commonData.COLLECTION.UG).updateOne({
+                        UID: uid
                     },{
                         $push: {
-                            "GID": data.GID
+                            "GID": gid
                         }
                     })
                 }
                 token.getToken({
-                    UID: r.date.data.UID.UID
+                    UID: uid,
+                    GID: gid
                   }).then(r=>{
                     console.log(r)
                     res.send({
                       code: commonData.CODE.SUCCESS,
                       data:{
-                        token: r
+                        token: r,
+                        GID: gid
                       },
                       msg: '新建成功！'
                   })
                 })
             } catch (error) {
-                
+                res.send({
+                    code: commonData.CODE.DB_ERROR,
+                    msg: '查询数据失败！'
+                })
             }
             
         }
@@ -78,7 +84,7 @@ let stopUsingGroup = async function(req, res){
         }else{
             try {
                 let UID = r.date.data.UID.UID || r.date.data.UID
-                let g = await DB.collection('group').findOne({
+                let g = await DB.collection(commonData.COLLECTION.GROUP).findOne({
                     GID: req.body.data
                 })
                 if(g.creator !== UID){
@@ -88,7 +94,7 @@ let stopUsingGroup = async function(req, res){
                     })
                     return
                 } 
-                DB.collection('group').updateOne({
+                DB.collection(commonData.COLLECTION.GROUP).updateOne({
                     GID: req.body.data
                 },{
                     $set: {
@@ -97,7 +103,8 @@ let stopUsingGroup = async function(req, res){
                 })
                 
                 token.getToken({
-                    UID: UID
+                    UID: UID,
+                    GID: r.date.data.GID
                   }).then(r=>{
                     console.log(r)
                     res.send({
@@ -128,7 +135,7 @@ let startUsingGroup = function(req, res){
         }else{
             try {
                 let UID = r.date.data.UID.UID || r.date.data.UID
-                let g = await DB.collection('group').findOne({
+                let g = await DB.collection(commonData.COLLECTION.GROUP).findOne({
                     GID: req.body.data
                 })
                 if(g.creator !== UID){
@@ -138,7 +145,7 @@ let startUsingGroup = function(req, res){
                     })
                     return
                 } 
-                DB.collection('group').updateOne({
+                DB.collection(commonData.COLLECTION.GROUP).updateOne({
                     GID: req.body.data
                 },{
                     $set: {
@@ -147,7 +154,8 @@ let startUsingGroup = function(req, res){
                 })
                 
                 token.getToken({
-                    UID: UID
+                    UID: UID,
+                    GID: r.date.data.GID
                   }).then(r=>{
                     console.log(r)
                     res.send({
@@ -178,7 +186,7 @@ let groupRename = async function(req, res){
         }else{
             try {
                 let UID = r.date.data.UID.UID || r.date.data.UID
-                let g = await DB.collection('group').findOne({
+                let g = await DB.collection(commonData.COLLECTION.GROUP).findOne({
                     GID: req.body.GID
                 })
                 if(g.creator !== UID){
@@ -195,7 +203,7 @@ let groupRename = async function(req, res){
                       })
                     })
                 } 
-                DB.collection('group').updateOne({
+                DB.collection(commonData.COLLECTION.GROUP).updateOne({
                     GID: req.body.GID
                 }, {
                     $set: {
@@ -203,7 +211,8 @@ let groupRename = async function(req, res){
                     }
                 })
                 token.getToken({
-                    UID: UID
+                    UID: UID,
+                    GID: r.date.data.GID
                   }).then(r=>{
                     console.log(r)
                     res.send({

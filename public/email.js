@@ -20,7 +20,7 @@ let sendEmail =  function(data){
             pass: 'qgsranlceabrbada'
         },
     })
-    if(data.type === 'code'){
+    if(data.type !== 'invite'){
         transporter.sendMail({
             from: 'BookKeeping<1578536879@qq.com>',
             to: data.userEmail,

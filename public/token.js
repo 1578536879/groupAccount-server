@@ -33,8 +33,9 @@ let getToken = async function(data){
     }
     console.log(typeof key)
     let res = jwt.sign({
-        data: userDate
-    }, key, {expiresIn: commonDate.CODE_EXPIRE_TIME})
+        data: userDate,
+        exp: Math.floor(Date.now() / 1000) + commonDate.CODE_EXPIRE_TIME
+    }, key)
     return res
 }
 

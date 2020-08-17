@@ -1,6 +1,6 @@
 module.exports = {
     REGISTER_CODE_SIZE: 6,
-    CODE_EXPIRE_TIME: 60 * 10 * 1000,
+    CODE_EXPIRE_TIME: 60 * 10,
     CODE: {
         SUCCESS: 100,
         INVALID: 201,
@@ -22,5 +22,10 @@ module.exports = {
         SECRETKEY: 'secretKey',
         USER: 'user',
         INVITATION: 'invitation'
+    },
+    ROLE: {
+        ORDINARY: 'ordinary',
+        CREATOR: 'creator',
+        ADMINISTRATION: 'administration'
     }
 }

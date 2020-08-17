@@ -24,8 +24,9 @@ let registerCode = async function(req, res){
             userEmail: emailData,
             subject: '注册账号',
             code: c,
-            use: '激活账号',
-            time: time
+            use: '激活验证账号',
+            time: time,
+            title: '这是激活验证的邮件, 如果没有相关操作，请不用理会'
         })
         if(r === 0){
           res.send({

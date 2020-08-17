@@ -15,14 +15,14 @@ let login = async function(req, res, next){
     password = md5(password)
     let UID
     try{
-       UID = await DB.collection('user').findOne({
+       UID = await DB.collection(commonData.COLLECTION.USER).findOne({
         email: req.body.email,
         password: password
       })
     }catch(err){
         console.log(err)
         res.send({
-            code: commonDate.CODE.DB_ERROR,
+            code: commonData.CODE.DB_ERROR,
             msg: '查询数据库失败！'
         })
       }
@@ -64,18 +64,15 @@ let register = function(req, res){
       password = md5(password)
       let UID
       try{
-        UID = await common.getID({
-          attribute: 'UID',
-          collection: 'user'
-        })
+        UID = await common.getID(commonData.COLLECTION.USER)
       }catch(err){
         console.error(err)
         res.send({
-            code: commonDate.CODE.DB_ERROR,
+            code: commonData.CODE.DB_ERROR,
             msg: '查询数据库失败！'
         })
       }
-      DB.collection('user').insertOne({
+      DB.collection(commonData.COLLECTION.USER).insertOne({
         email: req.body.email,
         password: password,
         username: req.body.username,
@@ -103,7 +100,7 @@ let forgetPassword = function(req, res){
           let pos = parseInt(req.body.pos)
           password = password.substr(0, pos) + password.substr(pos + md5('BookKeeping').length, password.length - pos)
           password = md5(password)
-          DB.collection('user').updateOne({
+          DB.collection(commonData.COLLECTION.USER).updateOne({
             email: req.body.email
           },{
             $set:{
@@ -134,14 +131,14 @@ let resetPassword = async function(req, res){
       password = password.substr(0, pos) + password.substr(pos + md5('BookKeeping').length, password.length - pos)
       password = md5(password)
       try{
-        user = await DB.collection('user').findOne({
+        user = await DB.collection(commonData.COLLECTION.USER).findOne({
           email: r.date.data.UID.email,
           password: password
         })
       }catch(err){
         console.error(err)
         res.send({
-            code: commonDate.CODE.DB_ERROR,
+            code: commonData.CODE.DB_ERROR,
             msg: '查询数据库失败！'
         })
       }
@@ -180,9 +177,10 @@ let resetPassword = async function(req, res){
 }
 
 let switchGroup = function(req, res){
+    let DB = mongo.getDB()
     token.verifyToken({
         token: req.headers.token
-    }).then(r=>{
+    }).then(async r=>{
       if(r.code !== commonData.CODE.SUCCESS){
         res.send(r)
       }else{
@@ -195,12 +193,18 @@ let switchGroup = function(req, res){
             res.send({
               code: commonData.CODE.SUCCESS,
               data:{
-                token: r
-              },
-              msg: '账单删除成功√'
+                token: r,
+                role: ''
+              }
           })
         })
         }else{
+          let group = await DB.collection(commonData.COLLECTION.GROUP).findOne({
+            GID: req.body.group
+          })
+          let user = group.user.filter(ele=>{
+            return ele.UID === UID
+          })
           token.getToken({
             UID: UID,
             GID: req.body.group
@@ -209,9 +213,9 @@ let switchGroup = function(req, res){
             res.send({
               code: commonData.CODE.SUCCESS,
               data:{
-                token: r
-              },
-              msg: '账单删除成功√'
+                token: r,
+                role: user[0].role
+              }
           })
         })
         }
