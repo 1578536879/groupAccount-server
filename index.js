@@ -12,6 +12,7 @@ const group = require('./src/group')
 const userBill = require('./src/userBill')
 const groupBill = require('./src/groupBill')
 const image = require('./src/image')
+const tag = require('./teambition')
 const pathname = __dirname;
 //静态文件访问
 APP.use(express.static(pathname));
@@ -73,6 +74,12 @@ APP.delete('/user/bill/delete', userBill.deleteBill)
 APP.post('/group/bill/insert', groupBill.insertBill)
 APP.get('/group/bill/get', groupBill.getBill)
 APP.delete('/group/bill/delete', groupBill.deleteBill)
+
+APP.post('/tag/insert', tag.insertTag)
+APP.delete('/tag/delete', tag.deleteTag)
+APP.get('/tag/find', tag.findTag)
+APP.post('/tag/modify', tag.modifyTag)
+APP.get('/tag/get', tag.getTag)
 
 APP.post('/image/bill/update', multer({
   storage
