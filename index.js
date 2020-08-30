@@ -70,16 +70,12 @@ APP.post('/group/user/downgrade', userGroup.downgradeMember)
 APP.post('/user/bill/insert', userBill.insertBill)
 APP.get('/user/bill/get', userBill.getBill)
 APP.delete('/user/bill/delete', userBill.deleteBill)
+APP.post('/user/bill/statistics', userBill.billStatistics)
 
 APP.post('/group/bill/insert', groupBill.insertBill)
 APP.get('/group/bill/get', groupBill.getBill)
 APP.delete('/group/bill/delete', groupBill.deleteBill)
-
-APP.post('/tag/insert', tag.insertTag)
-APP.delete('/tag/delete', tag.deleteTag)
-APP.get('/tag/find', tag.findTag)
-APP.post('/tag/modify', tag.modifyTag)
-APP.get('/tag/get', tag.getTag)
+APP.post('/group/bill/statistics', groupBill.billStatistics)
 
 APP.post('/image/bill/update', multer({
   storage
