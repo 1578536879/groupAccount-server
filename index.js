@@ -71,11 +71,15 @@ APP.post('/user/bill/insert', userBill.insertBill)
 APP.get('/user/bill/get', userBill.getBill)
 APP.delete('/user/bill/delete', userBill.deleteBill)
 APP.post('/user/bill/statistics', userBill.billStatistics)
+APP.post('/user/bill/find', userBill.findBill)
+APP.post('/user/bill/query', userBill.queryBill)
 
 APP.post('/group/bill/insert', groupBill.insertBill)
 APP.get('/group/bill/get', groupBill.getBill)
 APP.delete('/group/bill/delete', groupBill.deleteBill)
 APP.post('/group/bill/statistics', groupBill.billStatistics)
+APP.post('/group/bill/find', groupBill.findBill)
+APP.post('/group/bill/query', groupBill.queryBill)
 
 APP.post('/image/bill/update', multer({
   storage

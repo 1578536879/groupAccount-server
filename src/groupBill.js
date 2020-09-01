@@ -154,9 +154,76 @@ let billStatistics = function(req, res){
     })
 }
 
+let findBill = function(req, res){
+    let DB = mongo.getDB()
+    token.verifyToken({
+        token: req.headers.token
+    }).then(async r=>{
+        if(r.code !== commonData.CODE.SUCCESS){
+            res.send(r)
+        }else{
+            let UID = r.date.data.UID.UID || r.date.data.UID
+            let data = await DB.collection('bill').find({
+                GID: r.date.data.GID, 
+                content: {
+                    $regex: new RegExp(req.body.name)
+                }
+            }).toArray()
+            token.getToken({
+                UID: UID,
+                GID: r.date.data.GID
+              }).then(r=>{
+                console.log(r)
+                res.send({
+                  code: commonData.CODE.SUCCESS,
+                  data:{
+                    token: r,
+                    data: data
+                  }
+              })
+            })
+        }
+    })
+}
+
+let queryBill = function(req, res){
+    let DB = mongo.getDB()
+    token.verifyToken({
+        token: req.headers.token
+    }).then(async r=>{
+        if(r.code !== commonData.CODE.SUCCESS){
+            res.send(r)
+        }else{
+            let UID = r.date.data.UID.UID || r.date.data.UID
+            let data = await DB.collection('bill').find({
+                GID: r.date.data.GID,
+                date: {
+                    $gte: parseInt(req.body.startTime),
+                    $lt:  parseInt(req.body.endTime)
+                },
+            }).toArray()
+            token.getToken({
+                UID: UID,
+                GID: r.date.data.GID
+              }).then(r=>{
+                console.log(r)
+                res.send({
+                  code: commonData.CODE.SUCCESS,
+                  data:{
+                    token: r,
+                    data: data
+                  }
+              })
+            })
+        }
+    })
+}
+
 module.exports = {
     getBill: getBill,
     insertBill: insertBill,
     deleteBill: deleteBill,
-    billStatistics: billStatistics
+    billStatistics: billStatistics,
+    findBill: findBill,
+    queryBill: queryBill
 }
